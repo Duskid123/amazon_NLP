@@ -8,23 +8,47 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.linear_model import LogisticRegression
 import time
 import datetime
+import os
+import subprocess
+
 
 def read_data(size=None):
+    file_to_check = './DataSet/CleanedData/rejoined_Clean_file.csv'
+    script_to_run = "./DataSet/CleanedData/RejoinCSV.py"
     if size == None:
-        data = pd.read_csv('./DataSet/cleaned_dataset.csv', header=0)
+        if not os.path.exists('./DataSet/CleanedData/rejoined_Clean_file.csv'):
+            try:
+                subprocess.run(["python", script_to_run], check=True)
+                print(f"Successfully ran {script_to_run}.")
+            except subprocess.CalledProcessError as e:
+                print(f"Error running {script_to_run}: {e}")
+        else:
+            print(f"{file_to_check} already exists. No action taken.")
+        data = pd.read_csv(file_to_check, header=0)
         data = data.drop(data.columns[0], axis=1)
+        data = data.dropna(subset=['clean_text'])
     if size == 'small':
         data = pd.read_csv('./Dataset/cleaned_dataset1000.csv', header=0)
     return data
 
-data = read_data('small')
+data = read_data()
 
+# Function to create a unique directory
+def create_unique_directory(base_name):
+    directory = base_name
+    counter = 1
+    while os.path.exists(directory):
+        directory = f"{base_name}_{counter}"
+        counter += 1
+    os.makedirs(directory)
+
+    return directory
 
 # This is to use TF-IDF to create feature extractions
 vectorizer = TfidfVectorizer(stop_words='english', max_df=0.7)
 X = vectorizer.fit_transform(data['clean_text'])
 
-def getScore(model, X_train, X_test, y_train, y_test, data, filename):
+def getScore(model, X_train, X_test, y_train, y_test, data, filename, directory):
     # has the provided model run
     model.fit(X_train, y_train)
 
@@ -59,12 +83,12 @@ def getScore(model, X_train, X_test, y_train, y_test, data, filename):
         'text': data.iloc[original_indices]['clean_text'].values
     })
 
-    a = open(filename+'.txt', 'w')
+    a = open(directory+'TXT/'+filename+'.txt', 'w')
     a.write(save_message)
     a.close()
 
     # Display or save the DataFrame of incorrect predictions
-    incorrect_df.to_csv(filename+'.csv', index=False)
+    incorrect_df.to_csv(directory+'CSV/'+filename+'.csv', index=False)
     print(incorrect_df.head())  # Print the first few rows for a quick check
 
 
@@ -72,12 +96,32 @@ def getScore(model, X_train, X_test, y_train, y_test, data, filename):
 folds = StratifiedKFold(n_splits=5)
 
 i = 1
+data = data.reset_index(drop=True)
+
+directory = create_unique_directory(f'KfoldAnalysis{i}')
+
+fold_dir = os.path.join(directory, f"SVM")
+os.makedirs(fold_dir, exist_ok=True)
+fold_dir2 = os.path.join(fold_dir, f"TXT")
+os.makedirs(fold_dir2, exist_ok=True)
+fold_dir2 = os.path.join(fold_dir, f"CSV")
+os.makedirs(fold_dir2, exist_ok=True)
+
+fold_dir = os.path.join(directory, f"LR")
+os.makedirs(fold_dir, exist_ok=True)
+fold_dir2 = os.path.join(fold_dir, f"TXT")
+os.makedirs(fold_dir2, exist_ok=True)
+fold_dir2 = os.path.join(fold_dir, f"CSV")
+os.makedirs(fold_dir2, exist_ok=True)
+
 for train_index, test_index in folds.split(X, data['rating']):
     X_train, X_test, y_train, y_test = X[train_index], X[test_index], \
         data['rating'][train_index], data['rating'][test_index]
     print('Starting the ' + str(i) + 'th Lr fold split...')
-    getScore(LogisticRegression(), X_train, X_test, y_train, y_test, data, filename='bigLRIncorrect'+str(i))
+    getScore(LogisticRegression(), X_train, X_test, y_train, y_test, data,
+             filename='bigLRIncorrect'+str(i), directory=directory+'/LR/')
     print('Starting the ' + str(i) + 'th svm fold split...')
-    getScore(SVC(), X_train, X_test, y_train, y_test, data, filename='bigSVCIncorrect'+str(i))
+    getScore(SVC(), X_train, X_test, y_train, y_test, data, filename='bigSVCIncorrect'+str(i),
+             directory=directory+'/SVM/')
     # print(getScore(GaussianNB(), X_train.toarray(), X_test, y_train, y_test))
     i+= 1
