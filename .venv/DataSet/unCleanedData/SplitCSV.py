@@ -1,7 +1,7 @@
 import csv
 
 # Input file path
-input_file = "cleaned_dataset.csv"
+input_file = "Toys_and_Games_5.csv"
 rows_per_chunk = 100000  # Number of rows per split file
 
 # Split the CSV
