@@ -48,13 +48,13 @@ try:
     data = data.drop(data.columns[0], axis=1)
     # data = pd.read_csv('./DataSet/unCleanedData/rejoined_fileUncleaned.csv')
 except ValueError:
-    print("Error loading JSON file. Please check the file path and format.")
+    print("Error loading CSV file. Please check the file path and format.")
 else:
     # Clean text and generate binary rating
     data['clean_text'] = data['reviewText'].apply(clean_text)
     data['rating'] = (data['overall'] > 3).astype(int)  # 1 if higher than 3, 0 otherwise
 
-    # Save the cleaned dataset to JSON
+    # Save the cleaned dataset to CSV
     data = data.dropna(subset=['clean_text'])
     data.to_csv('./Dataset/cleaned_dataset.csv')
     print(f"Data cleaning complete. Saved to 'cleaned_dataset.csv'.")
