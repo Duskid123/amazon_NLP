@@ -26,7 +26,7 @@ def read_data(size=None):
         data = data.drop(data.columns[0], axis=1)
         data = data.dropna(subset=['clean_text'])
     elif size == 'small':
-        data = pd.read_csv('cleaned_small_dataset.csv', header=0)
+        data = pd.read_csv('./DataSet/CleanedData/cleaned_small_dataset.csv', header=0)
     return data
 
 def train_and_evaluate(model, model_name, X_train, X_test, y_train, y_test, data):
@@ -64,7 +64,7 @@ def train_and_evaluate(model, model_name, X_train, X_test, y_train, y_test, data
 
 
 # Main execution
-data = read_data()
+data = read_data('small')
 vectorizer = TfidfVectorizer(stop_words='english', max_df=0.7)
 X = vectorizer.fit_transform(data['clean_text'])
 X_train, X_test, y_train, y_test = train_test_split(X, data['rating'], test_size=0.2, random_state=42)
