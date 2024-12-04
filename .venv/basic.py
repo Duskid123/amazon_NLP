@@ -64,7 +64,7 @@ def train_and_evaluate(model, model_name, X_train, X_test, y_train, y_test, data
 
 
 # Main execution
-data = read_data('small')
+data = read_data()
 vectorizer = TfidfVectorizer(stop_words='english', max_df=0.7)
 X = vectorizer.fit_transform(data['clean_text'])
 X_train, X_test, y_train, y_test = train_test_split(X, data['rating'], test_size=0.2, random_state=42)
