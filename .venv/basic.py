@@ -2,9 +2,10 @@ import pandas as pd
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
-from sklearn.svm import SVC
+from sklearn import svm
 from sklearn.metrics import accuracy_score, classification_report
 from sklearn.naive_bayes import MultinomialNB
+import joblib
 from sklearn.linear_model import LogisticRegression
 import time
 import os
@@ -60,6 +61,8 @@ def train_and_evaluate(model, model_name, X_train, X_test, y_train, y_test, data
     print(f"Incorrect predictions saved to {file_name}")
 
     end_time = time.time()
+
+    joblib.dump(model, f"{model_name}.pkl")
     print(f'Execution time: {end_time - start_time:.4f} seconds')
 
 
@@ -71,7 +74,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, data['rating'], test_size
 
 # Models
 models = [
-    (SVC(kernel='linear'), "SVM"),
+    (svm.SVC(kernel='linear'), "SVM"),
     # (MultinomialNB(), "NaiveBayes"),
     (LogisticRegression(), "LogisticRegression")
 ]
